@@ -1,0 +1,2 @@
+# RubiCube
+Rubik Cube game
