@@ -1,6 +1,5 @@
 from turtle import Turtle, Screen
 
-
 class Cube3x3x3:
 
     def draw_cell(self, x1, y1, x2, y2, x3, y3, x4, y4, color_):
@@ -39,6 +38,34 @@ class Cube3x3x3:
                 y0 = i * self.side + j * sinA - (3*self.side / 2)
                 self.draw_cell(x0 + 1, y0 + 1, x0 + 1, y0 + self.side - 1, x0 + cosA - 1, y0 + sinA + self.side - 2, x0 + cosA - 1, y0 + sinA + 1, self.A[1][3*i + j])
 
+    def redraw_row(self, row):
+        # Front side
+        for j in range(0, 3):
+            x0 = j * self.side - (3*self.side / 2)
+            y0 = row * self.side - (3*self.side / 2)
+            self.draw_cell(x0 + 1, y0 + 1, x0 + self.side - 1, y0 + 1, x0 + self.side - 1, y0 + self.side - 1, x0 + 1, y0 + self.side - 1, self.A[0][3*row + j])
+        cosA = 0.75 * 0.766 * self.side  # 0.866   0.5253
+        sinA = 0.75 * 0.643 * self.side  # 0.5   0.851
+        # Right side
+        for j in range(3):
+            x0 = 3 * self.side + j * cosA - (3*self.side / 2)
+            y0 = row * self.side + j * sinA - (3*self.side / 2)
+            self.draw_cell(x0 + 1, y0 + 1, x0 + 1, y0 + self.side - 1, x0 + cosA - 1, y0 + sinA + self.side - 2, x0 + cosA - 1, y0 + sinA + 1, self.A[1][3*row + j])
+
+    def redraw_column(self, column):
+        # Front side
+        for i in range(0, 3):
+            x0 = column * self.side - (3*self.side / 2)
+            y0 = i * self.side - (3*self.side / 2)       
+            self.draw_cell(x0 + 1, y0 + 1, x0 + self.side - 1, y0 + 1, x0 + self.side - 1, y0 + self.side - 1, x0 + 1, y0 + self.side - 1, self.A[0][3*i + column])
+        # Upper side
+        cosA = 0.75 * 0.766 * self.side  # 0.866   0.5253
+        sinA = 0.75 * 0.643 * self.side  # 0.5   0.851     
+        for i in range(3):
+            x0 = i * cosA + column * self.side - (3*self.side / 2)
+            y0 = 3 * self.side + i * sinA - (3*self.side / 2)       
+            self.draw_cell(x0 + 1, y0 + 1, x0 + cosA + 1, y0 + sinA - 1, x0 + cosA + self.side - 1, y0 + sinA - 1, x0 + self.side - 1,  y0 + 1, self.A[2][3*i + column])
+
     def oncontrolkeypress(self, screen_, event_handle_function, key):
         def eventfunction(event):
             event_handle_function()
@@ -59,7 +86,19 @@ class Cube3x3x3:
         for i in range(3):
             self.A[sides[3]][3*row + i] = temp[i]
         if draw :
-            self.draw_play_ground()
+            self.redraw_row(row)
+
+    def column_transform_matrix(self, column, sides, draw = False):
+        temp = [0, 0, 0]
+        for i in range(3):
+            temp[i] = self.A[sides[0]][3*i + column]
+        for k in range(3):
+            for i in range(3):
+                self.A[sides[k]][3*i + column] = self.A[sides[k + 1]][3*i + column]
+        for i in range(3):
+            self.A[sides[3]][3*i + column] = temp[i]
+        if draw :
+            self.redraw_column(column)
 
     # bottom row move clockwise
     def command_ctrl_d(self):
@@ -91,6 +130,15 @@ class Cube3x3x3:
         self.row_transform_matrix(1, [0, 1, 4, 3])
         self.row_transform_matrix(0, [0, 1, 4, 3], True)
 
+    # left column moved
+    def command_L(self):
+        self.column_transform_matrix(0, [0, 2, 4, 5], True)
+    # middle column moved
+    def command_M(self):
+        self.column_transform_matrix(1, [0, 2, 4, 5], True)
+    # right column moved
+    def command_R(self):
+        self.column_transform_matrix(2, [0, 2, 4, 5], True)
 
     def onKeyHandler(self):
         # Handle key events
@@ -105,6 +153,9 @@ class Cube3x3x3:
         self.screen.onkey(self.command_E, "E")
         self.onaltkeypress(self.screen, self.command_alt_d, "d")
         self.onaltkeypress(self.screen, self.command_alt_u, "u")
+        self.screen.onkey(self.command_L, "L")
+        self.screen.onkey(self.command_M, "M")
+        self.screen.onkey(self.command_R, "R")
         self.screen.listen()
 
     def launch(self):
